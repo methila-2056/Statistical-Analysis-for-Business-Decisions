@@ -5,7 +5,13 @@ import seaborn as sns
 from scipy import stats
 from scipy.stats import norm, ttest_ind, chi2_contingency
 import warnings
+import sys
+import os
+from pathlib import Path
+
 warnings.filterwarnings('ignore')
+
+sys.stdout = open('analysis_results.txt', 'w', encoding='utf-8')
 
 class StatisticalAnalysis:
     """Class to perform statistical analysis for business decisions"""
@@ -13,6 +19,9 @@ class StatisticalAnalysis:
     def __init__(self, data_path):
         """Initialize with dataset"""
         self.df = pd.read_csv(data_path)
+        self.script_dir = Path(__file__).parent
+        self.viz_dir = self.script_dir / "visualizations"
+        self.viz_dir.mkdir(exist_ok=True)
         print(f"✓ Data loaded successfully!")
         print(f"  Rows: {len(self.df)}")
         print(f"  Columns: {len(self.df.columns)}")
@@ -87,7 +96,7 @@ class StatisticalAnalysis:
         plt.ylabel('Total Charges ($)')
         plt.title('Boxplot Comparison')
         plt.tight_layout()
-        plt.savefig('visualizations/ttest_visualization.png', dpi=300, bbox_inches='tight')
+        plt.savefig(self.viz_dir / 'ttest_visualization.png', dpi=300, bbox_inches='tight')
         print(f"\n✓ Visualization saved: visualizations/ttest_visualization.png")
         plt.close()
     
@@ -144,7 +153,7 @@ class StatisticalAnalysis:
         plt.xticks(rotation=0)
         
         plt.tight_layout()
-        plt.savefig('visualizations/chisquare_visualization.png', dpi=300, bbox_inches='tight')
+        plt.savefig(self.viz_dir / 'chisquare_visualization.png', dpi=300, bbox_inches='tight')
         print(f"\n✓ Visualization saved: visualizations/chisquare_visualization.png")
         plt.close()
     
@@ -205,7 +214,7 @@ class StatisticalAnalysis:
                     ha='center', va='bottom', fontsize=12, fontweight='bold')
         
         plt.tight_layout()
-        plt.savefig('visualizations/ab_testing_visualization.png', dpi=300, bbox_inches='tight')
+        plt.savefig(self.viz_dir / 'ab_testing_visualization.png', dpi=300, bbox_inches='tight')
         print(f"\n✓ Visualization saved: visualizations/ab_testing_visualization.png")
         plt.close()
     
@@ -290,7 +299,7 @@ class StatisticalAnalysis:
         plt.grid(axis='x', alpha=0.3)
         
         plt.tight_layout()
-        plt.savefig('visualizations/confidence_intervals.png', dpi=300, bbox_inches='tight')
+        plt.savefig(self.viz_dir / 'confidence_intervals.png', dpi=300, bbox_inches='tight')
         print(f"\n✓ Visualization saved: visualizations/confidence_intervals.png")
         plt.close()
     
@@ -362,7 +371,7 @@ class StatisticalAnalysis:
         plt.title('Customer Risk Distribution')
         
         plt.tight_layout()
-        plt.savefig('visualizations/risk_analysis.png', dpi=300, bbox_inches='tight')
+        plt.savefig(self.viz_dir / 'risk_analysis.png', dpi=300, bbox_inches='tight')
         print(f"\n✓ Visualization saved: visualizations/risk_analysis.png")
         plt.close()
     
@@ -405,9 +414,15 @@ def main():
     print("="*80)
     print(f"Execution Date: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
 
-    data_path = r"C:\Users\methi\OneDrive\Desktop\Codveda_Level2_Tasks\datasets\Data Set For Task\Churn Prdiction Data\churn-bigml-80.csv"
+    script_dir = Path(__file__).parent
+    data_path = script_dir.parent / "datasets" / "Data Set For Task" / "Churn Prdiction Data" / "churn-bigml-80.csv"
     
-    analysis = StatisticalAnalysis(data_path)
+    if not data_path.exists():
+        print(f"Error: Dataset not found at {data_path}")
+        print("Please ensure the dataset is located in the correct directory.")
+        return
+    
+    analysis = StatisticalAnalysis(str(data_path))
 
     analysis.data_overview()
     analysis.hypothesis_testing_ttest()
@@ -420,11 +435,13 @@ def main():
     print("\n" + "="*80)
     print("ANALYSIS COMPLETED SUCCESSFULLY!")
     print("="*80)
-    print("\nNext Steps:")
-    print("1. Review all visualizations created")
-    print("2. Document key findings in your report")
-    print("3. Prepare LinkedIn post with insights")
-    print("4. Share with hashtags: #CodvedaJourney #CodvedaAchievements")
+    
+    sys.stdout.close()
+    sys.stdout = sys.__stdout__
+    
+    print(f"Results have been saved to: {script_dir / 'analysis_results.txt'}")
+    print("Check the 'visualizations' folder for generated plots.")
+    
 
 if __name__ == "__main__":
     main()
